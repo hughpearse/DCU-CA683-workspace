@@ -51,7 +51,7 @@ def main():
     maxKey = max(classifier_performance_dict.items(), key=operator.itemgetter(1))[0]
     classifier = ""
     if maxKey == "LR":
-        classifier = LogisticRegression()
+        classifier = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=1000)
     if maxKey == "LDA":
         classifier = LinearDiscriminantAnalysis()
     if maxKey == "KNN":
