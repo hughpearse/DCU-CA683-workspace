@@ -10,11 +10,19 @@ def describeColumn(df):
 
 def main():
     df_collection = {}
-    df_collection[sys.argv[1]] = pd.read_csv(sys.argv[1])
-    df_collection[sys.argv[2]] = pd.read_csv(sys.argv[2])
+    df_1 = pd.read_csv(sys.argv[1])
+    df_2 = pd.read_csv(sys.argv[2])
+    frames = [df_1, df_2]
+    df_3 = pd.concat(frames)
+
+    df_collection[sys.argv[1]] = df_1
+    df_collection[sys.argv[2]] = df_2
+    df_collection['merged'] = df_3
+    
     for key,val in df_collection.items():
         df = val
-        print("\nSummary statistics for: " + key)
+        print("\n================================")
+        print("Summary statistics for: " + key)
         print("Class distribution:")
         print(df['class'].value_counts())
 
