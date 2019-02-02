@@ -17,17 +17,20 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 import operator
 
+
 def main():
     dataset = pandas.read_csv(sys.argv[1])
     array = dataset.values
-    X = array[:,0:4]
-    Y = array[:,4]
+    X = array[:, 0:4]
+    Y = array[:, 4]
     validation_size = 0.20
     seed = 7
-    X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X, Y, test_size=validation_size, random_state=seed)
+    X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(
+        X, Y, test_size=validation_size, random_state=seed)
     scoring = 'accuracy'
     models = []
-    models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
+    models.append(('LR', LogisticRegression(
+        solver='liblinear', multi_class='ovr')))
     models.append(('LDA', LinearDiscriminantAnalysis()))
     models.append(('KNN', KNeighborsClassifier()))
     models.append(('CART', DecisionTreeClassifier()))
@@ -41,39 +44,33 @@ def main():
     classifier_performance_dict = {}
     for name, model in models:
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
+        cv_results = model_selection.cross_val_score(
+            model, X_train, Y_train, cv=kfold, scoring=scoring)
         results.append(cv_results)
         names.append(name)
         msg = "%s,%f,%f" % (name, cv_results.mean(), cv_results.std())
         classifier_performance_dict[name] = cv_results.mean()
         print(msg)
-    
-    maxKey = max(classifier_performance_dict.items(), key=operator.itemgetter(1))[0]
+
+    maxKey = max(classifier_performance_dict.items(),
+                 key=operator.itemgetter(1))[0]
     classifier = ""
-    if maxKey == "LR":
-        classifier = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=1000)
-    if maxKey == "LDA":
-        classifier = LinearDiscriminantAnalysis()
-    if maxKey == "KNN":
-        classifier = KNeighborsClassifier()
-    if maxKey == "CART":
-        classifier = DecisionTreeClassifier()
-    if maxKey == "NB":
-        classifier = GaussianNB()
-    if maxKey == "SVM":
-        classifier = SVC(gamma='auto')
-    
+    modelDict = dict(models)
+    classifier = modelDict[maxKey]
+
     print("\nSelected classifier: " + maxKey)
     classifier.fit(X_train, Y_train)
     predictions = classifier.predict(X_validation)
-    joined_testdata = numpy.concatenate((X_validation, numpy.reshape(Y_validation, (-1, 1))),axis=1)
-    joined_testdata_w_predictions = numpy.concatenate((joined_testdata, numpy.reshape(predictions, (-1, 1))),axis=1)
-    print("\nTesting begins:")
+    joined_testdata = numpy.concatenate(
+        (X_validation, numpy.reshape(Y_validation, (-1, 1))), axis=1)
+    joined_testdata_w_predictions = numpy.concatenate(
+        (joined_testdata, numpy.reshape(predictions, (-1, 1))), axis=1)
+    print("\n" + maxKey + " classifier validation test results:")
     print("sl,sw,pl,pw,real-class,predicted-class")
     print(joined_testdata_w_predictions)
     print("Accuracy: " + str(accuracy_score(Y_validation, predictions)))
     print(classification_report(Y_validation, predictions))
-    
+
 
 if len(sys.argv) != 2:
     print("Usage: python3 " + sys.argv[0] + " trainingData.csv")
