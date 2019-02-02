@@ -75,14 +75,16 @@ def main():
     classifier = modelDict[maxKey]
 
     print("\nSelected classifier: " + maxKey)
+    X_train = chi2_selector.transform(X_train)
     classifier.fit(X_train, Y_train)
+    X_validation = chi2_selector.transform(X_validation)
     predictions = classifier.predict(X_validation)
     joined_testdata = numpy.concatenate(
         (X_validation, numpy.reshape(Y_validation, (-1, 1))), axis=1)
     joined_testdata_w_predictions = numpy.concatenate(
         (joined_testdata, numpy.reshape(predictions, (-1, 1))), axis=1)
     print("\n" + maxKey + " classifier validation test results:")
-    print("sl,sw,pl,pw,real-class,predicted-class")
+    print(feature_names[0]+","+feature_names[1]+",real-class,predicted-class")
     print(joined_testdata_w_predictions)
     print("Accuracy: " + str(accuracy_score(Y_validation, predictions)))
     print(classification_report(Y_validation, predictions))
@@ -91,6 +93,9 @@ def main():
               'Iris-setosa': 'blue', 'Iris-versicolor': 'green'}
     plt.scatter(dataset[feature_names[0]], dataset[feature_names[1]],
                 c=dataset["class"].apply(lambda x: colors[x]))
+    for row in joined_testdata_w_predictions:
+        if row[2] != row[3]:
+            plt.scatter(row[0], row[1], c='black', marker='x')
     plt.xlabel(feature_names[0])
     plt.ylabel(feature_names[1])
     plt.title("Iris dataset")
