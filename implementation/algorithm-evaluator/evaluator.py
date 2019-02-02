@@ -15,7 +15,13 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
 import operator
+import matplotlib  # noqa
+matplotlib.use('TkAgg')  # noqa
+import matplotlib.pyplot as plt  # noqa
+import itertools
 
 
 def main():
@@ -23,10 +29,21 @@ def main():
     array = dataset.values
     X = array[:, 0:4]
     Y = array[:, 4]
+
     validation_size = 0.20
     seed = 7
     X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(
         X, Y, test_size=validation_size, random_state=seed)
+
+    chi2_selector = SelectKBest(score_func=chi2, k=2)
+    chi2_selector.fit(X_train, Y_train)
+    X_new = chi2_selector.fit_transform(X_train, Y_train)
+    print("\nFeature Importance (Chi^2): " + str(chi2_selector.scores_))
+    print("Features Selected: " + str(chi2_selector.get_support()))
+    feature_names = dataset.iloc[:, chi2_selector.get_support()].columns.values
+    print("Selecting: " + str(feature_names))
+    X = X_new
+
     scoring = 'accuracy'
     models = []
     models.append(('LR', LogisticRegression(
@@ -39,7 +56,7 @@ def main():
     # evaluate each model in turn
     results = []
     names = []
-    print("Evaluating classifiers:")
+    print("\nEvaluating classifiers:")
     print("name,accuracy,std_dev")
     classifier_performance_dict = {}
     for name, model in models:
@@ -69,6 +86,15 @@ def main():
     print(joined_testdata_w_predictions)
     print("Accuracy: " + str(accuracy_score(Y_validation, predictions)))
     print(classification_report(Y_validation, predictions))
+
+    colors = {'Iris-virginica': 'red',
+              'Iris-setosa': 'blue', 'Iris-versicolor': 'green'}
+    plt.scatter(dataset[feature_names[0]], dataset[feature_names[1]],
+                c=dataset["class"].apply(lambda x: colors[x]))
+    plt.xlabel(feature_names[0])
+    plt.ylabel(feature_names[1])
+    plt.title("Iris dataset")
+    plt.show()
 
 
 if len(sys.argv) != 2:
