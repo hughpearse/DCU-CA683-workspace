@@ -54,7 +54,6 @@ def main():
 
     maxKey = max(classifier_performance_dict.items(),
                  key=operator.itemgetter(1))[0]
-    classifier = ""
     modelDict = dict(models)
     classifier = modelDict[maxKey]
 
