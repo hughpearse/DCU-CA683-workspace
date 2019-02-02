@@ -66,8 +66,14 @@ def main():
     print("\nSelected classifier: " + maxKey)
     classifier.fit(X_train, Y_train)
     predictions = classifier.predict(X_validation)
+    joined_testdata = numpy.concatenate((X_validation, numpy.reshape(Y_validation, (-1, 1))),axis=1)
+    joined_testdata_w_predictions = numpy.concatenate((joined_testdata, numpy.reshape(predictions, (-1, 1))),axis=1)
+    print("\nTesting begins:")
+    print("sl,sw,pl,pw,real-class,predicted-class")
+    print(joined_testdata_w_predictions)
     print("Accuracy: " + str(accuracy_score(Y_validation, predictions)))
     print(classification_report(Y_validation, predictions))
+    
 
 if len(sys.argv) != 2:
     print("Usage: python3 " + sys.argv[0] + " trainingData.csv")
