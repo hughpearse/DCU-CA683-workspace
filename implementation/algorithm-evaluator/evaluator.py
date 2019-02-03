@@ -11,13 +11,13 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
-from sklearn.svm import SVC
+from sklearn.svm import SVC, NuSVC
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.neural_network import MLPClassifier
@@ -66,6 +66,8 @@ def main():
     models.append(('ABC', AdaBoostClassifier()))
     models.append(('QDA', QuadraticDiscriminantAnalysis()))
     models.append(('SDG', SGDClassifier(max_iter=1000, tol=0.05)))
+    models.append(('GBC', GradientBoostingClassifier()))
+    models.append(('NSVC', NuSVC(probability=True, gamma='auto')))
     # evaluate each model in turn
     results = []
     names = []
