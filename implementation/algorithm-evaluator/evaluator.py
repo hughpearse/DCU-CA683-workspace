@@ -9,14 +9,18 @@ from sklearn import model_selection
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF
 from sklearn.svm import SVC
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
+from sklearn.neural_network import MLPClassifier
 import operator
 import matplotlib  # noqa
 matplotlib.use('TkAgg')  # noqa
@@ -37,12 +41,14 @@ def main():
 
     chi2_selector = SelectKBest(score_func=chi2, k=2)
     chi2_selector.fit(X_train, Y_train)
-    X_new = chi2_selector.fit_transform(X_train, Y_train)
+    chi2_selector.fit_transform(X_train, Y_train)
     print("\nFeature Importance (Chi^2): " + str(chi2_selector.scores_))
     print("Features Selected: " + str(chi2_selector.get_support()))
     feature_names = dataset.iloc[:, chi2_selector.get_support()].columns.values
     print("Selecting: " + str(feature_names))
-    X = X_new
+    X = chi2_selector.transform(X)
+    X_train = chi2_selector.transform(X_train)
+    X_validation = chi2_selector.transform(X_validation)
 
     scoring = 'accuracy'
     models = []
@@ -53,6 +59,13 @@ def main():
     models.append(('CART', DecisionTreeClassifier()))
     models.append(('NB', GaussianNB()))
     models.append(('SVM', SVC(gamma='auto')))
+    models.append(('MLP', MLPClassifier(solver='lbfgs')))
+    models.append(('RFC', RandomForestClassifier(
+        max_depth=5, n_estimators=10, max_features=1)))
+    models.append(('GPC', GaussianProcessClassifier(1.0 * RBF(1.0))))
+    models.append(('ABC', AdaBoostClassifier()))
+    models.append(('QDA', QuadraticDiscriminantAnalysis()))
+    models.append(('SDG', SGDClassifier(max_iter=1000, tol=0.05)))
     # evaluate each model in turn
     results = []
     names = []
@@ -75,9 +88,7 @@ def main():
     classifier = modelDict[maxKey]
 
     print("\nSelected classifier: " + maxKey)
-    X_train = chi2_selector.transform(X_train)
     classifier.fit(X_train, Y_train)
-    X_validation = chi2_selector.transform(X_validation)
     predictions = classifier.predict(X_validation)
     joined_testdata = numpy.concatenate(
         (X_validation, numpy.reshape(Y_validation, (-1, 1))), axis=1)
