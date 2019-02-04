@@ -32,7 +32,9 @@ def main():
             column_names = list(sp_df.columns.values)
             column_names = column_names[:len(column_names)-1]
             for column_name in column_names:
-                describeColumn(sp_df[column_name])
+                #print("-----" + column_name)
+                if column_name != 'class':
+                    describeColumn(sp_df[column_name])
 
 if len(sys.argv) != 3:
     print("Usage: python3 " + sys.argv[0] + " trainingData.csv testData.csv")
