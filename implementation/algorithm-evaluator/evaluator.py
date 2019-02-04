@@ -52,8 +52,7 @@ def main():
 
     scoring = 'accuracy'
     models = []
-    models.append(('LR', LogisticRegression(
-        solver='liblinear', multi_class='ovr')))
+    models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
     models.append(('LDA', LinearDiscriminantAnalysis()))
     models.append(('KNN', KNeighborsClassifier()))
     models.append(('CART', DecisionTreeClassifier()))
@@ -113,9 +112,9 @@ def main():
     plt.ylabel(feature_names[1])
     plt.title("Iris dataset")
     plt.show()
+    
 
-
-if len(sys.argv) != 2:
+if len(sys.argv) != 3:
     print("Usage: python3 " + sys.argv[0] + " trainingData.csv")
     exit(1)
 
