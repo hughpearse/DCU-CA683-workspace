@@ -27,8 +27,50 @@ matplotlib.use('TkAgg')  # noqa
 import matplotlib.pyplot as plt  # noqa
 import itertools
 
-
 def main():
+    df_1 = pandas.read_csv(sys.argv[1])
+    df_2 = pandas.read_csv(sys.argv[2])
+    summary(df_1,df_2)
+    evaluator(df_1)
+    exit(1)
+
+def describeColumn(df):
+    print("Min " + df.head(0).name + ": "  + str(df.min()))
+    print("Max " + df.head(0).name + ": "  + str(df.max()))
+    print("Mean " + df.head(0).name + ": "  + str(df.mean()))
+    print("Median " + df.head(0).name + ": "  + str(df.median()))
+
+def summary(df_1,df_2):
+    df_collection = {}
+    frames = [df_1, df_2]
+    df_3 = pandas.concat(frames)
+
+    df_collection[sys.argv[0]] = df_1
+    df_collection[sys.argv[1]] = df_2
+    df_collection['merged'] = df_3
+    
+    for key,val in df_collection.items():
+        df = val
+        print("\n================================")
+        print("Summary statistics for: " + key)
+        print("Class distribution:")
+        print(df['Species'].value_counts())
+
+        for species in df['Species'].unique():
+            print("\n" + species)
+            sp_df = df[df['Species']==species]
+            column_names = list(sp_df.columns.values)
+            column_names = column_names[:len(column_names)-1]
+            for column_name in column_names:
+                #print("-----" + column_name)
+                if column_name != 'Species':
+                    describeColumn(sp_df[column_name])
+
+if len(sys.argv) != 3:
+    print("Usage: python3 " + sys.argv[0] + " trainingData.csv testData.csv")
+
+
+def evaluator(df_1):
     dataset = pandas.read_csv(sys.argv[1])
     dataset.fillna(dataset.mean(), inplace=True)
     array = dataset.values
@@ -117,6 +159,5 @@ def main():
 
 if len(sys.argv) != 3:
     print("Usage: python3 " + sys.argv[0] + " trainingData.csv")
-    exit(1)
 
 main()

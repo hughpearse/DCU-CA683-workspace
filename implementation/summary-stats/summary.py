@@ -24,16 +24,16 @@ def main():
         print("\n================================")
         print("Summary statistics for: " + key)
         print("Class distribution:")
-        print(df['class'].value_counts())
+        print(df['Species'].value_counts())
 
-        for species in df['class'].unique():
+        for species in df['Species'].unique():
             print("\n" + species)
-            sp_df = df[df['class']==species]
+            sp_df = df[df['Species']==species]
             column_names = list(sp_df.columns.values)
             column_names = column_names[:len(column_names)-1]
             for column_name in column_names:
                 #print("-----" + column_name)
-                if column_name != 'class':
+                if column_name != 'Species':
                     describeColumn(sp_df[column_name])
 
 if len(sys.argv) != 3:
