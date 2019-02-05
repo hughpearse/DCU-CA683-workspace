@@ -67,12 +67,15 @@ def main():
         colNames[colNums[2]]].apply(lambda x: x.fillna(x.mean()))
     df[colNames[colNums[3]]] = df.groupby(colNames[colNums[4]])[
         colNames[colNums[3]]].apply(lambda x: x.fillna(x.mean()))
+    print("\nSubgroup means:")
+    print(df.groupby(colNames[colNums[4]]).apply(lambda x: x.mean()))
     # Drop highly correlated control variables
     corr_matrix = df.corr().abs()
     upper_triangle = corr_matrix.where(numpy.triu(
         numpy.ones(corr_matrix.shape), k=1).astype(numpy.bool))
     to_drop = [column for column in upper_triangle.columns if any(
         upper_triangle[column] > 0.95)]
+    print("\nDropping highly correlated conrol variable: ", to_drop)
     df = df.drop(to_drop, axis=1)
     for i, x in enumerate(colNames):
         if x in to_drop:
@@ -153,7 +156,7 @@ def main():
     colors = {'virginica': 'red',
               'setosa': 'blue', 'versicolor': 'green'}
     plt.scatter(df[feature_names[0]], df[feature_names[1]],
-                c=df["Species"].apply(lambda x: colors[x]))
+                c=df[colNames[colNums[3]]].apply(lambda x: colors[x]))
     for row in joined_testdata_w_predictions:
         if row[2] != row[3]:
             plt.scatter(row[0], row[1], c='black', marker='x')
