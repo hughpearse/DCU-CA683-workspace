@@ -28,7 +28,8 @@ matplotlib.use('TkAgg')  # noqa
 import matplotlib.pyplot as plt  # noqa
 import itertools
 
-colNames = ['sl', 'sw', 'pl', 'pw', 'Species']
+colNames = ['Sepal Length', 'Sepal Width',
+            'Petal Length', 'Petal Width', 'Species']
 colNums = [0, 1, 2, 3, 4]
 
 
