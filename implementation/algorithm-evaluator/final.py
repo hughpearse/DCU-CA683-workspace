@@ -108,7 +108,7 @@ def main():
     print(upper_triangle)
     to_drop = [column for column in upper_triangle.columns if any(
         upper_triangle[column] > 0.95)]
-    print("\nDropping highly correlated conrol variable: ", to_drop)
+    print("\nDropping variable with high multicollinearity: ", to_drop)
     df = df.drop(to_drop, axis=1)
     for i, x in enumerate(colNames):
         if x in to_drop:
