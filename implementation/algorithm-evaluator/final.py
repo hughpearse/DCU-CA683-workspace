@@ -60,18 +60,25 @@ def main():
     # Means with NaNs
     means_with_nan = df.groupby(
         colNames[colNums[4]]).apply(lambda x: x.mean())
+    means_with_nan = means_with_nan.append(pandas.DataFrame(
+        means_with_nan.mean(numeric_only=True)).T)
+    means_with_nan.rename(index={0: 'mean'}, inplace=True)
     print("\nMeans with NaN:")
     print(means_with_nan)
     means_with_nan = means_with_nan.values.flatten()
     # Means without NaNs
     means_without_nan = df.dropna().groupby(
         colNames[colNums[4]]).apply(lambda x: x.mean())
+    means_without_nan = means_without_nan.append(pandas.DataFrame(
+        means_without_nan.mean(numeric_only=True)).T)
+    means_without_nan.rename(index={0: 'mean'}, inplace=True)
     print("\nMeans without NaN:")
     print(means_without_nan)
     means_without_nan = means_without_nan.values.flatten()
     # MCAR decision
     cs = chisquare(means_with_nan, means_without_nan)
     print("\nChi-square of (means_with_nan,means_without_nan) p-value:", cs.pvalue)
+    sys.exit(0)
     if(cs.pvalue > 0.05):
         # CMAR - replace NaN by class mean
         print("P-value was not significant, data is MCAR. Imputing missing values")
