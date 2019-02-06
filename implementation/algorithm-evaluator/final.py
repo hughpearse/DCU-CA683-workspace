@@ -57,40 +57,38 @@ def main():
     df = pandas.read_csv(sys.argv[1])
     generateSummary(df)
     df.columns = colNames
-    mean_by_species_dict = {}
-    # Chi-Square NaN to determine if MCAR
-    # Observed
-    missing_values_table = df.groupby(
-        colNames[colNums[4]]).apply(lambda x: x.isna().sum())
-    missing_values_table['Total'] = missing_values_table.sum(axis=1)
-    missing_values_table.drop(colNames[colNums[4]], axis=1, inplace=True)
-    print("\nNaN count (observed):")
-    print(missing_values_table)
-    missing_values_table = missing_values_table.values.flatten()
-    # Expected
-    present_values_table = df.groupby(
-        colNames[colNums[4]]).apply(lambda x: x.notna().sum())
-    present_values_table['Total'] = present_values_table.sum(axis=1)
-    present_values_table.drop(colNames[colNums[4]], axis=1, inplace=True)
-    print("\nNot NaN count (expected):")
-    print(present_values_table)
-    present_values_table = present_values_table.values.flatten()
+    # Means with NaNs
+    means_with_nan = df.groupby(
+        colNames[colNums[4]]).apply(lambda x: x.mean())
+    print("\nMeans with NaN:")
+    print(means_with_nan)
+    means_with_nan = means_with_nan.values.flatten()
+    # Means without NaNs
+    means_without_nan = df.dropna().groupby(
+        colNames[colNums[4]]).apply(lambda x: x.mean())
+    print("\nMeans without NaN:")
+    print(means_without_nan)
+    means_without_nan = means_without_nan.values.flatten()
     # MCAR decision
-    print("\nChi-Squared for MCAR:")
-    cs = chisquare(missing_values_table, present_values_table)
-    print(cs)
-    # sys.exit(0)
-    # CMAR - replace NaN by class mean
-    df[colNames[colNums[0]]] = df.groupby(colNames[colNums[4]])[
-        colNames[colNums[0]]].apply(lambda x: x.fillna(x.mean()))
-    df[colNames[colNums[1]]] = df.groupby(colNames[colNums[4]])[
-        colNames[colNums[1]]].apply(lambda x: x.fillna(x.mean()))
-    df[colNames[colNums[2]]] = df.groupby(colNames[colNums[4]])[
-        colNames[colNums[2]]].apply(lambda x: x.fillna(x.mean()))
-    df[colNames[colNums[3]]] = df.groupby(colNames[colNums[4]])[
-        colNames[colNums[3]]].apply(lambda x: x.fillna(x.mean()))
-    print("\nSubgroup means:")
-    print(df.groupby(colNames[colNums[4]]).apply(lambda x: x.mean()))
+    cs = chisquare(means_with_nan, means_without_nan)
+    print("\nChi-square of (means_with_nan,means_without_nan) p-value:", cs.pvalue)
+    if(cs.pvalue > 0.05):
+        # CMAR - replace NaN by class mean
+        print("P-value was not significant, data is MCAR. Imputing missing values")
+        df[colNames[colNums[0]]] = df.groupby(colNames[colNums[4]])[
+            colNames[colNums[0]]].apply(lambda x: x.fillna(x.mean()))
+        df[colNames[colNums[1]]] = df.groupby(colNames[colNums[4]])[
+            colNames[colNums[1]]].apply(lambda x: x.fillna(x.mean()))
+        df[colNames[colNums[2]]] = df.groupby(colNames[colNums[4]])[
+            colNames[colNums[2]]].apply(lambda x: x.fillna(x.mean()))
+        df[colNames[colNums[3]]] = df.groupby(colNames[colNums[4]])[
+            colNames[colNums[3]]].apply(lambda x: x.fillna(x.mean()))
+        print("\nMeans after imputation:")
+        print(df.groupby(colNames[colNums[4]]).apply(lambda x: x.mean()))
+    else:
+        # NMAR - drop rows with NaN
+        print("P-value was significant, data is NMAR. Dropping rows with missing values")
+        df.dropna(inplace=True)
     # Drop highly correlated control variables
     corr_matrix = df.corr().abs()
     upper_triangle = corr_matrix.where(numpy.triu(
