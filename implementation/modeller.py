@@ -119,7 +119,7 @@ def main():
     X = array[:, 0:3]
     Y = array[:, 3]
     validation_size = 0.20
-    seed = 7
+    seed = 1
     X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(
         X, Y, test_size=validation_size, random_state=seed)
     # Select variables to predict response
