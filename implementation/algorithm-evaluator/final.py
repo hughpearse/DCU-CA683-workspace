@@ -78,7 +78,6 @@ def main():
     # MCAR decision
     cs = chisquare(means_with_nan, means_without_nan)
     print("\nChi-square of (means_with_nan,means_without_nan) p-value:", cs.pvalue)
-    sys.exit(0)
     if(cs.pvalue > 0.05):
         # CMAR - replace NaN by class mean
         print("P-value was not significant, data is MCAR. Imputing missing values")
@@ -91,7 +90,12 @@ def main():
         df[colNames[colNums[3]]] = df.groupby(colNames[colNums[4]])[
             colNames[colNums[3]]].apply(lambda x: x.fillna(x.mean()))
         print("\nMeans after imputation:")
-        print(df.groupby(colNames[colNums[4]]).apply(lambda x: x.mean()))
+        means_after_impute = df.groupby(
+            colNames[colNums[4]]).apply(lambda x: x.mean())
+        means_after_impute = means_after_impute.append(
+            pandas.DataFrame(means_after_impute.mean(numeric_only=True)).T)
+        means_after_impute.rename(index={0: 'mean'}, inplace=True)
+        print(means_after_impute)
     else:
         # NMAR - drop rows with NaN
         print("P-value was significant, data is NMAR. Dropping rows with missing values")
@@ -100,6 +104,8 @@ def main():
     corr_matrix = df.corr().abs()
     upper_triangle = corr_matrix.where(numpy.triu(
         numpy.ones(corr_matrix.shape), k=1).astype(numpy.bool))
+    print("\nCalculating correlation between control variables:")
+    print(upper_triangle)
     to_drop = [column for column in upper_triangle.columns if any(
         upper_triangle[column] > 0.95)]
     print("\nDropping highly correlated conrol variable: ", to_drop)
@@ -176,7 +182,11 @@ def main():
         (joined_testdata, numpy.reshape(predictions, (-1, 1))), axis=1)
     print("\n" + maxKey + " classifier validation test results:")
     print(feature_names[0]+","+feature_names[1]+",real-class,predicted-class")
-    print(joined_testdata_w_predictions)
+    for row in joined_testdata_w_predictions:
+        if row[2] != row[3]:
+            print(row, " <== Misclassified")
+        else:
+            print(row)
     print("Accuracy: " + str(accuracy_score(Y_validation, predictions)))
     print(classification_report(Y_validation, predictions))
     # Visualise results
