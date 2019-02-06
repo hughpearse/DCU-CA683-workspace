@@ -3,6 +3,7 @@ import sys
 import pandas
 from pandas.plotting import scatter_matrix
 import scipy
+from scipy.stats import chisquare
 import numpy
 import sklearn
 from sklearn import model_selection
@@ -57,7 +58,28 @@ def main():
     generateSummary(df)
     df.columns = colNames
     mean_by_species_dict = {}
-
+    # Chi-Square NaN to determine if MCAR
+    # Observed
+    missing_values_table = df.groupby(
+        colNames[colNums[4]]).apply(lambda x: x.isna().sum())
+    missing_values_table['Total'] = missing_values_table.sum(axis=1)
+    missing_values_table.drop(colNames[colNums[4]], axis=1, inplace=True)
+    print("\nNaN count (observed):")
+    print(missing_values_table)
+    missing_values_table = missing_values_table.values.flatten()
+    # Expected
+    present_values_table = df.groupby(
+        colNames[colNums[4]]).apply(lambda x: x.notna().sum())
+    present_values_table['Total'] = present_values_table.sum(axis=1)
+    present_values_table.drop(colNames[colNums[4]], axis=1, inplace=True)
+    print("\nNot NaN count (expected):")
+    print(present_values_table)
+    present_values_table = present_values_table.values.flatten()
+    # MCAR decision
+    print("\nChi-Squared for MCAR:")
+    cs = chisquare(missing_values_table, present_values_table)
+    print(cs)
+    # sys.exit(0)
     # CMAR - replace NaN by class mean
     df[colNames[colNums[0]]] = df.groupby(colNames[colNums[4]])[
         colNames[colNums[0]]].apply(lambda x: x.fillna(x.mean()))
@@ -168,6 +190,6 @@ def main():
 
 if len(sys.argv) != 2:
     print("Usage: python3 " + sys.argv[0] + " iris.csv")
-    exit(1)
+    sys.exit(1)
 
 main()
