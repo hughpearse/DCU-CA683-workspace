@@ -22,6 +22,7 @@ from sklearn.svm import SVC, NuSVC
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import VotingClassifier
 import operator
 import matplotlib  # noqa
 matplotlib.use('TkAgg')  # noqa
@@ -128,9 +129,8 @@ def main():
     chi2_selector.fit(X_train, Y_train)
     chi2_selector.fit_transform(X_train, Y_train)
     print("\nFeature Importance (Chi^2): " + str(chi2_selector.scores_))
-    print("Features Selected: " + str(chi2_selector.get_support()))
     feature_names = df.iloc[:, chi2_selector.get_support()].columns.values
-    print("Selecting: " + str(feature_names))
+    print("Selecting features: " + str(feature_names))
     X = chi2_selector.transform(X)
     X_train = chi2_selector.transform(X_train)
     X_validation = chi2_selector.transform(X_validation)
@@ -168,20 +168,18 @@ def main():
         msg = "%s,%f,%f" % (name, cv_results.mean(), cv_results.std())
         classifier_performance_dict[name] = cv_results.mean()
         print(msg)
-    # Select best performing classifier
-    maxKey = max(classifier_performance_dict.items(),
-                 key=operator.itemgetter(1))[0]
-    modelDict = dict(models)
-    classifier = modelDict[maxKey]
-    print("\nSelected classifier: " + maxKey)
+    # Combine classifiers using a vote
+    classifier = VotingClassifier(models)
     classifier.fit(X_train, Y_train)
-    # Perform some tests
+    results = model_selection.cross_val_score(
+        classifier, X_train, Y_train, cv=kfold)
+    # Execute some tests
     predictions = classifier.predict(X_validation)
     joined_testdata = numpy.concatenate(
         (X_validation, numpy.reshape(Y_validation, (-1, 1))), axis=1)
     joined_testdata_w_predictions = numpy.concatenate(
         (joined_testdata, numpy.reshape(predictions, (-1, 1))), axis=1)
-    print("\n" + maxKey + " classifier validation test results:")
+    print("\nEnselble (vote) classifier validation test results:")
     print(feature_names[0]+","+feature_names[1]+",real-class,predicted-class")
     for row in joined_testdata_w_predictions:
         if row[2] != row[3]:
